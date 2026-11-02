@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMS Multi Sender</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --card: #141720;
+    --card2: #1a1e2a;
+    --border: #252a38;
+    --accent: #6c63ff;
+    --accent2: #00d4ff;
+    --green: #00e676;
+    --red: #ff4d4d;
+    --yellow: #ffaa00;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px 16px 40px;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    padding: 32px 0 36px;
+  }
+
+  .header .badge {
+    display: inline-block;
+    background: rgba(108,99,255,0.15);
+    border: 1px solid rgba(108,99,255,0.4);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    padding: 5px 16px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .header h1 {
+    font-size: clamp(24px, 5vw, 38px);
+    font-weight: 700;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+  }
+
+  .header p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  .slot-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    background: rgba(0,230,118,0.1);
+    border: 1px solid rgba(0,230,118,0.3);
+    color: var(--green);
+    font-size: 12px;
+    padding: 4px 14px;
+    border-radius: 20px;
+  }
+
+  .dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ── Layout ── */
+  .container { max-width: 900px; margin: 0 auto; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  @media(max-width:640px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title span { color: var(--accent2); }
+
+  /* ── Form ── */
+  .field { margin-bottom: 16px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .field input,
+  .field select {
+    width: 100%;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .field input:focus,
+  .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+  }
+
+  .field select option { background: var(--card); }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ── Button ── */
+  .btn-fire {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+
+  .btn-fire:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-fire:active { transform: translateY(0); }
+  .btn-fire:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .btn-stop {
+    width: 100%;
+    padding: 11px;
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-stop:hover { background: rgba(255,77,77,0.1); }
+
+  /* ── Stats ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 10px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent2);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 500;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat.ok .stat-num  { color: var(--green); }
+  .stat.err .stat-num { color: var(--red); }
+  .stat.skip .stat-num{ color: var(--yellow); }
+
+  /* ── Progress ── */
+  .progress-wrap {
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 3px;
+    width: 0;
+    transition: width 0.3s ease;
+  }
+
+  /* ── Log ── */
+  .log-wrap {
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    height: 280px;
+    overflow-y: auto;
+    font-size: 12px;
+    line-height: 1.8;
+    font-family: 'Courier New', monospace;
+  }
+
+  .log-wrap::-webkit-scrollbar { width: 4px; }
+  .log-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .log-line { display: block; }
+  .l-ok   { color: var(--green); }
+  .l-err  { color: var(--red); }
+  .l-info { color: var(--accent2); }
+  .l-warn { color: var(--yellow); }
+  .l-muted{ color: var(--muted); }
+
+  .log-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+  }
+
+  .btn-clear {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    padding: 5px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .btn-clear:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Slots List ── */
+  .slots-card { margin-bottom: 16px; }
+
+  .slot-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+
+  .slot-item.active { border-color: rgba(0,230,118,0.3); }
+
+  .slot-left { display: flex; align-items: center; gap: 10px; }
+
+  .slot-indicator {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+
+  .slot-name { font-size: 13px; font-weight: 500; }
+  .slot-url  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .slot-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: rgba(108,99,255,0.2);
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* ── Full width ── */
+  .full { grid-column: 1 / -1; }
+
+  /* ── Spinner ── */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">⚡ SMS Control Panel</div>
+    <h1>Multi-API SMS Sender</h1>
+    <p>Server-side proxy — CORS free — multi slot firing</p>
+    <div class="slot-count-badge">
+      <div class="dot"></div>
+      {{ total_slots }} Active API Slot{{ 's' if total_slots != 1 else '' }} Running
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="sTotal">0</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat ok">
+      <div class="stat-num" id="sOk">0</div>
+      <div class="stat-label">Success</div>
+    </div>
+    <div class="stat err">
+      <div class="stat-num" id="sErr">0</div>
+      <div class="stat-label">Failed</div>
+    </div>
+    <div class="stat skip">
+      <div class="stat-num" id="sSkip">0</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="grid">
+
+    <!-- Compose -->
+    <div class="card">
+      <div class="card-title"><span>📨</span> Compose & Fire</div>
+
+      <div class="field">
+        <label>Target Phone Number</label>
+        <input type="tel" id="phone" placeholder="03001234567 or +923001234567">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Send Count</label>
+          <input type="number" id="count" value="1" min="1" max="500">
+        </div>
+        <div class="field">
+          <label>Fire Mode</label>
+          <select id="mode">
+            <option value="all">All Slots</option>
+            {% for slot in slots %}
+            <option value="single_{{ loop.index0 }}">{{ slot.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-fire" id="fireBtn" onclick="fireSMS()">
+        ▶ &nbsp; FIRE
+      </button>
+      <button class="btn-stop" onclick="stopFire()">■ &nbsp; STOP</button>
+    </div>
+
+    <!-- Log -->
+    <div class="card">
+      <div class="card-title"><span>📡</span> Live Log</div>
+      <div class="log-wrap" id="logBox">
+        <span class="log-line l-info">// Server ready — configure and fire.</span>
+      </div>
+      <div class="log-actions">
+        <button class="btn-clear" onclick="clearLog()">Clear Log</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- API Slots -->
+  <div class="card slots-card">
+    <div class="card-title"><span>🔌</span> Configured API Slots</div>
+    {% for slot in slots %}
+    <div class="slot-item active">
+      <div class="slot-left">
+        <div class="slot-indicator"></div>
+        <div>
+          <div class="slot-name">{{ slot.name }}</div>
+          <div class="slot-url">{{ slot.url[:55] }}{% if slot.url|length > 55 %}...{% endif %}</div>
+        </div>
+      </div>
+      <div class="slot-badge">{{ slot.method }}</div>
+    </div>
+    {% endfor %}
+    {% if total_slots == 0 %}
+    <div style="text-align:center;color:var(--muted);padding:20px;font-size:13px;">
+      No active slots — add slots in app.py
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  let stopFlag = false;
+  let running  = false;
+
+  const stats = { total: 0, ok: 0, err: 0, pending: 0 };
+
+  function log(msg, type = 'info') {
+    const box = document.getElementById('logBox');
+    const ts  = new Date().toLocaleTimeString('en-US', { hour12: false });
+    const el  = document.createElement('span');
+    el.className = `log-line l-${type}`;
+    el.textContent = `[${ts}] ${msg}`;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function clearLog() {
+    document.getElementById('logBox').innerHTML = '<span class="log-line l-muted">// Log cleared.</span>';
+  }
+
+  function updateStats() {
+    document.getElementById('sTotal').textContent   = stats.total;
+    document.getElementById('sOk').textContent      = stats.ok;
+    document.getElementById('sErr').textContent     = stats.err;
+    document.getElementById('sSkip').textContent    = stats.pending;
+  }
+
+  function setProgress(val) {
+    document.getElementById('progressFill').style.width = Math.min(val, 100) + '%';
+  }
+
+  async function fireSMS() {
+    if (running) return;
+
+    const phone = document.getElementById('phone').value.trim();
+    const count = parseInt(document.getElementById('count').value) || 1;
+    const modeVal = document.getElementById('mode').value;
+
+    if (!phone) { log('ERROR: Phone number required', 'err'); return; }
+
+    let mode = 'all';
+    let slot_index = 0;
+
+    if (modeVal.startsWith('single_')) {
+      mode = 'single';
+      slot_index = parseInt(modeVal.replace('single_', ''));
+    }
+
+    running = true;
+    stopFlag = false;
+    stats.total = 0; stats.ok = 0; stats.err = 0; stats.pending = count;
+    updateStats();
+    setProgress(0);
+
+    const btn = document.getElementById('fireBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> FIRING...';
+
+    log(`▶ Firing — phone: ${phone} | count: ${count} | mode: ${modeVal}`, 'info');
+
+    try {
+      const resp = await fetch('/api/fire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, count, mode, slot_index })
+      });
+
+      const data = await resp.json();
+
+      if (data.error) {
+        log(`ERROR: ${data.error}`, 'err');
+      } else {
+        stats.total   = data.total;
+        stats.ok      = data.success;
+        stats.err     = data.failed;
+        stats.pending = 0;
+        updateStats();
+        setProgress(100);
+
+        data.results.forEach(r => {
+          if (r.success) {
+            log(`✓ [${r.slot}] ${r.status_code} — ${JSON.stringify(r.response).substring(0, 80)}`, 'ok');
+          } else {
+            log(`✗ [${r.slot}] ${r.error || r.status_code + ' ' + JSON.stringify(r.response).substring(0,60)}`, 'err');
+          }
+        });
+
+        log(`■ Done — Success: ${data.success} | Failed: ${data.failed}`, 'info');
+      }
+    } catch (e) {
+      log(`NETWORK ERROR: ${e.message}`, 'err');
+    }
+
+    running = false;
+    btn.disabled = false;
+    btn.innerHTML = '▶ &nbsp; FIRE';
+  }
+
+  function stopFire() {
+    stopFlag = true;
+    log('■ Stop requested', 'warn');
+  }
+</script>
+
+</body>
+  </html>
+  
